@@ -180,6 +180,7 @@ export interface RetryOptions {
 
 export interface ClientOptions {
   endPoint: string
+  extendUrl?: string
   accessKey?: string
   secretKey?: string
   useSSL?: boolean
@@ -223,6 +224,7 @@ type Part = {
 export class TypedClient {
   protected transport: Transport
   protected host: string
+  protected extendUrl: string
   protected port: number
   protected protocol: string
   protected accessKey: string
@@ -280,6 +282,7 @@ export class TypedClient {
     }
 
     const host = params.endPoint.toLowerCase()
+    const extendUrl = params.extendUrl || ''
     let port = params.port
     let protocol: string
     let transport
@@ -332,6 +335,7 @@ export class TypedClient {
     this.transport = transport
     this.transportAgent = transportAgent
     this.host = host
+    this.extendUrl = extendUrl
     this.port = port
     this.protocol = protocol
     this.userAgent = `${libraryAgent}`
@@ -466,6 +470,8 @@ export class TypedClient {
   ): IRequest & {
     host: string
     headers: Record<string, string>
+    pathStyle?: boolean,
+    extendUrl?: string
   } {
     const method = opts.method
     const region = opts.region
@@ -559,7 +565,9 @@ export class TypedClient {
       host,
       port,
       path,
-    } satisfies https.RequestOptions
+      pathStyle: this.pathStyle,
+      extendUrl: this.extendUrl
+    } 
   }
 
   public async setCredentialsProvider(credentialsProvider: CredentialProvider) {
@@ -2944,6 +2952,13 @@ export class TypedClient {
       const region = await this.getBucketRegionAsync(bucketName)
       await this.checkAndRefreshCreds()
       const reqOptions = this.getRequestOptions({ method, region, bucketName, objectName, query })
+      console.log(11111,reqOptions)
+
+      if(reqOptions.extendUrl && !reqOptions.pathStyle) {
+        reqOptions.headers.host = reqOptions.extendUrl.replace(/^https?:\/\//, '');
+      }
+
+      console.log(11111,reqOptions)
 
       return presignSignatureV4(
         reqOptions,
