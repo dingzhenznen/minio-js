@@ -2952,14 +2952,9 @@ export class TypedClient {
       const region = await this.getBucketRegionAsync(bucketName)
       await this.checkAndRefreshCreds()
       const reqOptions = this.getRequestOptions({ method, region, bucketName, objectName, query })
-      console.log(11111,reqOptions)
-
       if(reqOptions.extendUrl && !reqOptions.pathStyle) {
         reqOptions.headers.host = reqOptions.extendUrl.replace(/^https?:\/\//, '');
       }
-
-      console.log(11111,reqOptions)
-
       return presignSignatureV4(
         reqOptions,
         this.accessKey,
